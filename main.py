@@ -14,7 +14,7 @@ HOME_URL = "https://linux.do/"
 class LinuxDoBrowser:
     def __init__(self) -> None:
         self.pw = sync_playwright().start()
-        self.browser = self.pw.firefox.launch(headless=False)
+        self.browser = self.pw.firefox.launch(headless=True)
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
         self.page.goto(HOME_URL)
