@@ -31,8 +31,6 @@ class LinuxDoBrowser:
             print("Check in success")
             return True
 
-        input()
-
 
 if __name__ == "__main__":
     if not USERNAME or not PASSWORD:
