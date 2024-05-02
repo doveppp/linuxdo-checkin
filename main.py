@@ -10,7 +10,7 @@ PASSWORD = os.environ.get("PASSWORD")
 class LinuxDoBrowser:
     def __init__(self) -> None:
         self.pw = sync_playwright().start()
-        self.browser = self.pw.firefox.launch(headless=False)
+        self.browser = self.pw.firefox.launch(headless=True)
         self.page = self.browser.new_page()
         self.page.goto("https://linux.do/")
 
