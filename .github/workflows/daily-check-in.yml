@@ -20,7 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install playwright
 
-        run: playwright install firefox --with-deps
+        run: playwright install firefox
 
       - name: Execute script
         env:
