@@ -1,6 +1,8 @@
 import os
 import time
 import random
+
+from tabulate import tabulate
 from playwright.sync_api import sync_playwright
 
 
@@ -49,10 +51,31 @@ class LinuxDoBrowser:
         if not self.login():
             return
         self.click_topic()
+        self.print_connect_info()
 
     def click_like(self, page):
         page.locator(".discourse-reactions-reaction-button").first.click()
         print("Like success")
+
+    def print_connect_info(self):
+        page = self.context.new_page()
+        page.goto("https://connect.linux.do/")
+        rows = page.query_selector_all("table tr")
+
+        info = []
+
+        for row in rows:
+            cells = row.query_selector_all("td")
+            if len(cells) >= 3:
+                project = cells[0].text_content().strip()
+                current = cells[1].text_content().strip()
+                requirement = cells[2].text_content().strip()
+                info.append([project, current, requirement])
+
+        print("--------------Connect Info-----------------")
+        print(tabulate(info, headers=["项目", "当前", "要求"], tablefmt="pretty"))
+
+        page.close()
 
 
 if __name__ == "__main__":
