@@ -8,13 +8,8 @@ This project automates daily check-ins on the [LinuxDo](https://linux.do/) websi
 - Completes daily check-ins.
 - Runs automatically in GitHub Actions.
 
-## Technology Stack
-- Python
-- Playwright
-- GitHub Actions
-
 ## How to Use
-This section only explains how to use this automation within GitHub Actions. Please fork this repository before proceeding.
+This section solely focuses on how to utilize GitHub Actions. Prior to proceeding, you need to fork this project first.
 
 ### Setting Environment Variables
 Before using this automation script, you need to configure two environment variables `USERNAME` and `PASSWORD` in your GitHub repository, which will be used to log into LinuxDo. Follow these steps to set up:
