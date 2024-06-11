@@ -1,11 +1,12 @@
 # LinuxDo Daily Check-in
 
 ## Project Description
-This project automates daily check-ins on the [LinuxDo](https://linux.do/) website. It uses Python and the Playwright automation library to simulate browser login and check-in activities.
+This project is designed to automatically log into the [LinuxDo](https://linux.do/) website and randomly read several posts. It utilizes Python in conjunction with the Playwright automation library to simulate browser login and post browsing activities.
 
 ## Features
 - Automatically logs into LinuxDo.
 - Completes daily check-ins.
+- Automatically browse posts.
 - Runs automatically in GitHub Actions.
 
 ## How to Use
