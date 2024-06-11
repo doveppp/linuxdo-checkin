@@ -1,13 +1,14 @@
  [English](./README_en.md)
  
-# LinuxDo Daily Check-in
+# LinuxDo 每日签到
 
 ## 项目描述
-这个项目用于自动执行 [LinuxDo](https://linux.do/) 网站的每日签到。它使用 Python 和 Playwright 自动化库模拟浏览器登录并签到。
+这个项目用于自动登录 [LinuxDo](https://linux.do/) 网站并随机读取几个帖子。它使用 Python 和 Playwright 自动化库模拟浏览器登录并浏览帖子。
 
 ## 功能
 - 自动登录 LinuxDo。
 - 完成每日签到。
+- 自动浏览帖子。
 - 在 GitHub Actions 中自动运行。
 
 ## 如何使用
