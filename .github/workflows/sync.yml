@@ -1,0 +1,34 @@
+name: Sync Upstream
+
+permissions: write-all              # grant write permission
+
+on: 
+  schedule:
+    - cron: '0 0 * * *'             # scheduled for 00:00 every Monday
+  workflow_dispatch:                # trigger manually
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Sync upstream changes
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+        with:
+            # REQUIRED 'target_repo_token' exactly like this!
+            target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+            target_sync_branch: main
+            upstream_sync_branch: main
+            upstream_sync_repo: doveppp/linuxdo-checkin
+
+            # Set test_mode true during manual dispatch to run tests instead of the true action!!
+            test_mode: false
+
+      - name: Sync check
+        if: failure()
+        run: |
+          echo "[Error] 由于上游仓库的 workflow 文件变更，导致 GitHub 自动暂停了本次自动更新，你需要手动 Sync Fork 一次。"
+          exit 1
