@@ -22,14 +22,14 @@ class LinuxDoBrowser:
         self.page.goto(HOME_URL)
 
     def login(self):
-        self.page.click(".header-buttons .d-button-label")
+        self.page.click(".login-button .d-button-label")
         time.sleep(2)
         self.page.fill("#login-account-name", USERNAME)
         time.sleep(2)
         self.page.fill("#login-account-password", PASSWORD)
         time.sleep(2)
         self.page.click("#login-button")
-        time.sleep(30)
+        time.sleep(10)
         user_ele = self.page.query_selector("#current-user")
         if not user_ele:
             print("Login failed")
@@ -42,9 +42,10 @@ class LinuxDoBrowser:
         for topic in self.page.query_selector_all("#list-area .title"):
             page = self.context.new_page()
             page.goto(HOME_URL + topic.get_attribute("href"))
+            time.sleep(3)
             if random.random() < 0.02:  # 100 * 0.02 * 30 = 60
                 self.click_like(page)
-            time.sleep(10)
+            time.sleep(3)
             page.close()
 
     def run(self):
