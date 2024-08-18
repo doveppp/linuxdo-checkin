@@ -32,3 +32,11 @@
 1. 进入 GitHub 仓库的 `Actions` 选项卡。
 2. 选择你想运行的工作流。
 3. 点击 `Run workflow` 按钮，选择分支，然后点击 `Run workflow` 以启动工作流。
+
+## 运行结果
+
+`Actions`栏 -> 点击最新的`Daily Check-in` workflow run -> `run_script` -> `Execute script`
+
+可看到`Connect Info`：
+（新号可能这里为空，多挂几天就有了）
+![image](https://github.com/user-attachments/assets/853549a5-b11d-4d5a-9284-7ad2f8ea698b)
