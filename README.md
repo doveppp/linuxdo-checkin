@@ -18,7 +18,7 @@
 
 1. 登录 GitHub，进入你的项目仓库。
 2. 点击仓库的 `Settings` 选项卡。
-3. 在左侧菜单中找到 `Secrets` 部分，点击 `Actions`。
+3. 在左侧菜单中找到 `Secrets and variables` 部分，点击 `Actions`。
 4. 点击 `New repository secret` 按钮。
 5. 分别添加 `USERNAME` 和 `PASSWORD`：
    - 在 `Name` 字段中输入 `USERNAME`，在 `Value` 字段中输入你的 LinuxDo 用户名或者邮箱。
