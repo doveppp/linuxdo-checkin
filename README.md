@@ -40,3 +40,9 @@
 可看到`Connect Info`：
 （新号可能这里为空，多挂几天就有了）
 ![image](https://github.com/user-attachments/assets/853549a5-b11d-4d5a-9284-7ad2f8ea698b)
+
+
+
+## 自动更新
+
+默认状态下自动更新是关闭的，[点击此处](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/blob/main/README_CN.md#%E6%89%93%E5%BC%80%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0)查看打开自动更新步骤。
