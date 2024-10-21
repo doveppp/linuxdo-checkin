@@ -1,0 +1,31 @@
+name: Run ChatGPT Auth Script Weekly
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'  # 每周一 8:00 (UTC) 执行
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install drissionpage requests
+
+    - name: Run ChatGPT Auth Script
+      env:
+        EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        ACCOUNTS: ${{ secrets.ACCOUNTS }}
+      run: python auth_script.py
