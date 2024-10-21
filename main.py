@@ -1,87 +1,85 @@
 import os
+import json
+import smtplib
 import time
-import random
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from DrissionPage import ChromiumPage, ChromiumOptions
 
-from tabulate import tabulate
-from playwright.sync_api import sync_playwright
+def options_default():
+    """设置无头浏览器的选项。"""
+    co = ChromiumOptions()
+    co.headless(True)  # 无头模式
+    co.incognito(True)  # 无痕模式
+    return co
 
+def login(email, password):
+    """使用 Gmail 登录 ChatGPT，并返回 accessToken。"""
+    options = options_default()
+    page = ChromiumPage(options)
 
-USERNAME = os.environ.get("USERNAME")
-PASSWORD = os.environ.get("PASSWORD")
-
-
-HOME_URL = "https://linux.do"
-
-
-class LinuxDoBrowser:
-    def __init__(self) -> None:
-        self.pw = sync_playwright().start()
-        self.browser = self.pw.firefox.launch(headless=True)
-        self.context = self.browser.new_context()
-        self.page = self.context.new_page()
-        self.page.goto(HOME_URL)
-
-    def login(self):
-        self.page.click(".login-button .d-button-label")
+    try:
+        page.get('https://chat.openai.com')
         time.sleep(2)
-        self.page.fill("#login-account-name", USERNAME)
+
+        # 输入 Gmail 和密码
+        email_input = page.ele('#email-input')
+        email_input.input(email)
+        page.ele('.continue-btn').click()
+
         time.sleep(2)
-        self.page.fill("#login-account-password", PASSWORD)
+
+        password_input = page.ele('#password')
+        password_input.input(password)
+        page.ele('@name=action').click()
+
         time.sleep(2)
-        self.page.click("#login-button")
-        time.sleep(10)
-        user_ele = self.page.query_selector("#current-user")
-        if not user_ele:
-            print("Login failed")
-            return False
-        else:
-            print("Check in success")
-            return True
 
-    def click_topic(self):
-        for topic in self.page.query_selector_all("#list-area .title"):
-            page = self.context.new_page()
-            page.goto(HOME_URL + topic.get_attribute("href"))
-            time.sleep(3)
-            if random.random() < 0.02:  # 100 * 0.02 * 30 = 60
-                self.click_like(page)
-            time.sleep(3)
-            page.close()
+        # 获取 accessToken
+        page.get('https://chat.openai.com/api/auth/session')
+        data = json.loads(page.ele('tag:pre').text)
+        return data.get("accessToken")
 
-    def run(self):
-        if not self.login():
-            return
-        self.click_topic()
-        self.print_connect_info()
-
-    def click_like(self, page):
-        page.locator(".discourse-reactions-reaction-button").first.click()
-        print("Like success")
-
-    def print_connect_info(self):
-        page = self.context.new_page()
-        page.goto("https://connect.linux.do/")
-        rows = page.query_selector_all("table tr")
-
-        info = []
-
-        for row in rows:
-            cells = row.query_selector_all("td")
-            if len(cells) >= 3:
-                project = cells[0].text_content().strip()
-                current = cells[1].text_content().strip()
-                requirement = cells[2].text_content().strip()
-                info.append([project, current, requirement])
-
-        print("--------------Connect Info-----------------")
-        print(tabulate(info, headers=["项目", "当前", "要求"], tablefmt="pretty"))
-
+    except Exception as e:
+        print(f"登录失败: {e}")
+    finally:
         page.close()
+    return None
 
+def send_email(tokens):
+    """使用腾讯邮箱发送 accessToken。"""
+    sender = os.getenv('EMAIL_USERNAME')
+    password = os.getenv('EMAIL_PASSWORD')
+    recipient = os.getenv('RECIPIENT_EMAIL')
 
-if __name__ == "__main__":
-    if not USERNAME or not PASSWORD:
-        print("Please set USERNAME and PASSWORD")
-        exit(1)
-    l = LinuxDoBrowser()
-    l.run()
+    msg = MIMEMultipart()
+    msg['From'] = sender
+    msg['To'] = recipient
+    msg['Subject'] = 'Weekly Access Tokens'
+
+    body = '\n'.join(tokens)
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.qq.com', 587) as server:
+            server.starttls()
+            server.login(sender, password)
+            server.send_message(msg)
+        print("邮件发送成功")
+    except Exception as e:
+        print(f"邮件发送失败: {e}")
+
+if __name__ == '__main__':
+    accounts = os.getenv('ACCOUNTS').splitlines()
+    tokens = []
+
+    # 遍历所有账号并获取 accessToken
+    for account in accounts:
+        email, password = account.split(':')
+        token = login(email, password)
+        if token:
+            tokens.append(f"{email}: {token}")
+
+    # 如果成功获取 token，发送邮件
+    if tokens:
+        send_email(tokens)
