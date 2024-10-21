@@ -2,7 +2,8 @@ name: Run ChatGPT Auth Script Weekly
 
 on:
   schedule:
-    - cron: '0 8 * * 1'  # 每周一 8:00 (UTC) 执行
+    - cron: '0 8 * * 1'  # 每周一 8:00 (UTC) 运行
+  workflow_dispatch:  # 添加手动触发支持
 
 jobs:
   run-script:
