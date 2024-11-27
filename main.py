@@ -47,13 +47,13 @@ class LinuxDoBrowser:
             page.goto(HOME_URL + topic.get_attribute("href"))
             if random.random() < 0.3:  # 0.3 * 30 = 9
                 self.click_like(page)
-            self.borrow_post(page)
+            self.browse_post(page)
             page.close()
 
-    def borrow_post(self, page):
+    def browse_post(self, page):
         prev_url = None
-        # 开始自动滚动
-        while True:
+        # 开始自动滚动，最多滚动10次
+        for _ in range(10):
             # 随机滚动一段距离
             scroll_distance = random.randint(550, 650)  # 随机滚动 550-650 像素
             logger.info(f"Scrolling down by {scroll_distance} pixels...")
@@ -74,7 +74,7 @@ class LinuxDoBrowser:
                 break
 
             # 动态随机等待
-            wait_time = random.uniform(3, 5)  # 随机等待 2-5 秒
+            wait_time = random.uniform(2, 4)  # 随机等待 2-4 秒
             logger.info(f"Waiting for {wait_time:.2f} seconds...")
             time.sleep(wait_time)
 
