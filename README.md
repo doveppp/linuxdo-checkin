@@ -1,5 +1,3 @@
- [English](./README_en.md)
- 
 # LinuxDo 每日签到（每日打卡）
 
 ## 项目描述
@@ -25,7 +23,7 @@
    - 重复上述步骤，这次输入 `PASSWORD` 作为 `Name`，相应的密码作为 `Value`。
 
 ### GitHub Actions 自动运行
-此项目的 GitHub Actions 配置会自动每天零点 UTC 时间运行签到脚本。你无需进行任何操作即可启动此自动化任务。GitHub Actions 的工作流文件位于 `.github/workflows` 目录下，文件名为 `daily-check-in.yml`。
+此项目的 GitHub Actions 配置会自动每天 UTC 时间1点运行签到脚本。你无需进行任何操作即可启动此自动化任务。GitHub Actions 的工作流文件位于 `.github/workflows` 目录下，文件名为 `daily-check-in.yml`。
 
 如果你需要手动触发此工作流，可以通过以下步骤操作：
 
