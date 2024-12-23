@@ -33,13 +33,26 @@
 
 ## 运行结果
 
+### 网页中查看
 `Actions`栏 -> 点击最新的`Daily Check-in` workflow run -> `run_script` -> `Execute script`
 
 可看到`Connect Info`：
 （新号可能这里为空，多挂几天就有了）
 ![image](https://github.com/user-attachments/assets/853549a5-b11d-4d5a-9284-7ad2f8ea698b)
 
+### Telegram 通知
 
+可选功能：配置 Telegram 通知，实时获取签到结果。
+
+需要在 GitHub Secrets 中配置：
+- `TELEGRAM_TOKEN`：Telegram Bot Token
+- `TELEGRAM_USERID`：Telegram 用户 ID
+
+获取方法：
+1. Bot Token：与 [@BotFather](https://t.me/BotFather) 对话创建机器人获取
+2. 用户 ID：与 [@userinfobot](https://t.me/userinfobot) 对话获取
+
+未配置时将自动跳过通知功能，不影响签到。
 
 ## 自动更新
 
