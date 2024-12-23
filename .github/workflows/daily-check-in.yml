@@ -28,20 +28,26 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
         run: |
           python main.py
-          
+
       - name: Send Telegram Notification
-        if: ${{ success() && secrets.TELEGRAM_TOKEN != '' && secrets.TELEGRAM_USERID != '' }}
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
+        if: ${{ success() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
-          -d chat_id=${{ secrets.TELEGRAM_USERID }} \
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ env.TELEGRAM_USERID }} \
           -d parse_mode=HTML \
           -d text="✅ <b>LINUX DO</b> 每日签到成功完成"
 
       - name: Send Failure Notification
-        if: ${{ failure() && secrets.TELEGRAM_TOKEN != '' && secrets.TELEGRAM_USERID != '' }}
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
+        if: ${{ failure() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
-          -d chat_id=${{ secrets.TELEGRAM_USERID }} \
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ env.TELEGRAM_USERID }} \
           -d parse_mode=HTML \
           -d text="❌ <b>LINUX DO</b> 每日签到失败"
 
