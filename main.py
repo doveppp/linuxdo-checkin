@@ -6,6 +6,10 @@ from loguru import logger
 from playwright.sync_api import sync_playwright
 from tabulate import tabulate
 
+
+os.environ.pop("DISPLAY", None)
+os.environ.pop("DYLD_LIBRARY_PATH", None)
+
 USERNAME = os.environ.get("USERNAME")
 PASSWORD = os.environ.get("PASSWORD")
 
