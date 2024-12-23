@@ -43,7 +43,7 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
           -d chat_id=${{ secrets.TELEGRAM_USERID }} \
           -d parse_mode=HTML \
-        -d text="❌ <b>LINUX DO</b> 每日签到失败"
+          -d text="❌ <b>LINUX DO</b> 每日签到失败"
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
