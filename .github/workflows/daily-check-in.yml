@@ -14,12 +14,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.9.19'
-
-      - name: Install dependencies
+      - uses: actions/setup-node@v3
+      - name: Install node dependencies
+        run: npm ci
+      - name: Install playwright browser
+        run: npx playwright install --with-deps firefox
+        
+      - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          playwright install firefox
 
       - name: Execute script
         env:
