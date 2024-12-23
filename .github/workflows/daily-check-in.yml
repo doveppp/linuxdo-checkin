@@ -28,7 +28,21 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
         run: |
           python main.py
+          
+      - name: Send Success Telegram Notification
+        if: ${{ success() }}  # 只有当执行成功时发送通知
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ secrets.TELEGRAM_USERID }} \
+          -d text="LINUX DO每日签到成功完成"
 
+      - name: Send Failure Telegram Notification
+        if: ${{ failure() }}  # 只有当执行失败时发送失败通知
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ secrets.TELEGRAM_USERID }} \
+          -d text="LINUX DO每日签到失败，请检查日志！"
+          
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
