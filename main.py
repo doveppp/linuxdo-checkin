@@ -1,11 +1,23 @@
 import os
 import random
 import time
+from functools import wraps
 
 from loguru import logger
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from tabulate import tabulate
 
+def handle_exceptions(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except PlaywrightTimeout:
+            logger.error(f"操作超时: {func.__name__}")
+        except Exception as e:
+            logger.error(f"执行 {func.__name__} 时发生错误: {str(e)}")
+        return None
+    return wrapper
 
 os.environ.pop("DISPLAY", None)
 os.environ.pop("DYLD_LIBRARY_PATH", None)
@@ -18,41 +30,73 @@ HOME_URL = "https://linux.do/"
 
 class LinuxDoBrowser:
     def __init__(self) -> None:
-        self.pw = sync_playwright().start()
-        self.browser = self.pw.firefox.launch(headless=True, timeout=30000)
-        self.context = self.browser.new_context()
-        self.page = self.context.new_page()
-        self.page.goto(HOME_URL)
+        try:
+            self.pw = sync_playwright().start()
+            self.browser = self.pw.firefox.launch(headless=True, timeout=30000)
+            self.context = self.browser.new_context()
+            self.page = self.context.new_page()
+            self.page.goto(HOME_URL)
+        except Exception as e:
+            logger.error(f"初始化浏览器失败: {str(e)}")
+            self.cleanup()
+            raise
 
+    def cleanup(self):
+        """清理资源"""
+        try:
+            if hasattr(self, 'context'):
+                self.context.close()
+            if hasattr(self, 'browser'):
+                self.browser.close()
+            if hasattr(self, 'pw'):
+                self.pw.stop()
+        except Exception as e:
+            logger.error(f"清理资源时发生错误: {str(e)}")
+
+    @handle_exceptions
     def login(self):
-        logger.info("Login")
-        self.page.click(".login-button .d-button-label")
-        time.sleep(2)
-        self.page.fill("#login-account-name", USERNAME)
-        time.sleep(2)
-        self.page.fill("#login-account-password", PASSWORD)
-        time.sleep(2)
-        self.page.click("#login-button")
-        time.sleep(10)
-        user_ele = self.page.query_selector("#current-user")
-        if not user_ele:
-            logger.error("Login failed")
-            return False
-        else:
-            logger.info("Login success")
+        logger.info("开始登录")
+        try:
+            self.page.click(".login-button .d-button-label")
+            time.sleep(2)
+            self.page.fill("#login-account-name", USERNAME)
+            time.sleep(2)
+            self.page.fill("#login-account-password", PASSWORD)
+            time.sleep(2)
+            self.page.click("#login-button")
+            time.sleep(10)
+            user_ele = self.page.query_selector("#current-user")
+            if not user_ele:
+                logger.error("登录失败")
+                return False
+            logger.info("登录成功")
             return True
+        except Exception as e:
+            logger.error(f"登录过程发生错误: {str(e)}")
+            return False
 
+    @handle_exceptions
     def click_topic(self):
-        topic_list = self.page.query_selector_all("#list-area .title")
-        logger.info(f"Click {len(topic_list)} topics")
-        for topic in topic_list:
-            logger.info("Click topic: " + topic.get_attribute("href"))
-            page = self.context.new_page()
-            page.goto(HOME_URL + topic.get_attribute("href"))
-            if random.random() < 0.3:  # 0.3 * 30 = 9
-                self.click_like(page)
-            self.browse_post(page)
-            page.close()
+        try:
+            topic_list = self.page.query_selector_all("#list-area .title")
+            logger.info(f"发现 {len(topic_list)} 个主题")
+            for topic in topic_list:
+                try:
+                    href = topic.get_attribute("href")
+                    if not href:
+                        continue
+                    logger.info(f"点击主题: {href}")
+                    page = self.context.new_page()
+                    page.goto(HOME_URL + href)
+                    if random.random() < 0.3:
+                        self.click_like(page)
+                    self.browse_post(page)
+                    page.close()
+                except Exception as e:
+                    logger.error(f"处理主题时发生错误: {str(e)}")
+                    continue
+        except Exception as e:
+            logger.error(f"获取主题列表失败: {str(e)}")
 
     def browse_post(self, page):
         prev_url = None
@@ -83,10 +127,15 @@ class LinuxDoBrowser:
             time.sleep(wait_time)
 
     def run(self):
-        if not self.login():
-            return
-        self.click_topic()
-        self.print_connect_info()
+        try:
+            if not self.login():
+                return
+            self.click_topic()
+            self.print_connect_info()
+        except Exception as e:
+            logger.error(f"运行过程发生错误: {str(e)}")
+        finally:
+            self.cleanup()
 
     def click_like(self, page):
         try:
@@ -125,8 +174,12 @@ class LinuxDoBrowser:
 
 
 if __name__ == "__main__":
-    if not USERNAME or not PASSWORD:
-        print("Please set USERNAME and PASSWORD")
+    try:
+        if not USERNAME or not PASSWORD:
+            logger.error("请设置 USERNAME 和 PASSWORD 环境变量")
+            exit(1)
+        l = LinuxDoBrowser()
+        l.run()
+    except Exception as e:
+        logger.error(f"程序执行失败: {str(e)}")
         exit(1)
-    l = LinuxDoBrowser()
-    l.run()
