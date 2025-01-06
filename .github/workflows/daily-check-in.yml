@@ -2,7 +2,7 @@ name: Daily Check-in
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 每天1点 UTC 时间执行
+    - cron: '0 */12 * * *'  # 每12小时执行一次
   workflow_dispatch:
 
 jobs:
@@ -10,9 +10,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        env:
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTP_PROXY }}
       
       - name: Set up Python
         uses: actions/setup-python@v5
+        env:
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTP_PROXY }}
         with:
           python-version: '3.9.19'
 
@@ -27,10 +33,14 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.PASSWORD }}
         run: |
+          export https_proxy=
+          export http_proxy=
           python main.py
 
       - name: Send Telegram Notification
         env:
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTP_PROXY }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
         if: ${{ success() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
@@ -42,6 +52,8 @@ jobs:
 
       - name: Send Failure Notification
         env:
+          HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ secrets.HTTP_PROXY }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
         if: ${{ failure() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
