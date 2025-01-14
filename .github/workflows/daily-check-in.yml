@@ -2,7 +2,7 @@ name: Daily Check-in
 
 on:
   schedule:
-    - cron: '0 5,9,14,23 * * *'  # 每12小时执行一次
+    - cron: '0 5,9,14,23 * * *'  # 北京时间7点、12点、17点、22点执行4次
   workflow_dispatch:
 
 jobs:
