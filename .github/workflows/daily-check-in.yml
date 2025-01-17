@@ -33,7 +33,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
-          TELEGRAM_THREADID: ${{ env.TELEGRAM_THREADID }}
+          TELEGRAM_THREADID: ${{ secrets.TELEGRAM_THREADID }}
         if: ${{ success() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
