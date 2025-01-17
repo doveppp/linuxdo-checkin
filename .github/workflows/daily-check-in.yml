@@ -37,6 +37,7 @@ jobs:
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
           -d chat_id=${{ env.TELEGRAM_USERID }} \
+          -d message_thread_id=${{ env.TELEGRAM_THREADID }} \
           -d parse_mode=HTML \
           -d text="✅ <b>LINUX DO</b> 每日签到成功完成"
 
@@ -48,6 +49,7 @@ jobs:
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
           -d chat_id=${{ env.TELEGRAM_USERID }} \
+          -d message_thread_id=${{ env.TELEGRAM_THREADID }} \
           -d parse_mode=HTML \
           -d text="❌ <b>LINUX DO</b> 每日签到失败"
 
