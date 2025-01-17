@@ -47,6 +47,7 @@
 需要在 GitHub Secrets 中配置：
 - `TELEGRAM_TOKEN`：Telegram Bot Token
 - `TELEGRAM_USERID`：Telegram 用户 ID
+- `TELEGRAM_THREADID`：Telegram 超级群组话题 ID
 
 获取方法：
 1. Bot Token：与 [@BotFather](https://t.me/BotFather) 对话创建机器人获取
