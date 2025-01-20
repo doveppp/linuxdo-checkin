@@ -2,6 +2,7 @@ import os
 import random
 import time
 import functools
+import sys
 
 from loguru import logger
 from playwright.sync_api import sync_playwright
@@ -107,7 +108,8 @@ class LinuxDoBrowser:
 
     def run(self):
         if not self.login():
-            return
+            logger.error("登录失败，程序终止")
+            sys.exit(1)  # 使用非零退出码终止整个程序
         self.click_topic()
         self.print_connect_info()
 
