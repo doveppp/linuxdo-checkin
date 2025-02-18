@@ -2,24 +2,27 @@ name: Daily Check-in
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 每天1点 UTC 时间执行
+    #- cron: '0 1 * * *'  # 每天1点 UTC 时间执行
+    - cron: '0 */12 * * *'  # 每12小时执行一次
+
   workflow_dispatch:
 
 jobs:
   run_script:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9.19'
 
-      - name: Install dependencies
+      - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          playwright install firefox
+          playwright install --with-deps firefox
 
       - name: Execute script
         env:
@@ -27,3 +30,33 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
         run: |
           python main.py
+
+      - name: Send Telegram Notification
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
+        if: ${{ success() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ env.TELEGRAM_USERID }} \
+          -d parse_mode=HTML \
+          -d text="✅ <b>LINUX DO</b> 每日签到成功完成"
+
+      - name: Send Failure Notification
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_USERID: ${{ secrets.TELEGRAM_USERID }}
+        if: ${{ failure() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_USERID != '' }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ env.TELEGRAM_USERID }} \
+          -d parse_mode=HTML \
+          -d text="❌ <b>LINUX DO</b> 每日签到失败"
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 10
+          keep_minimum_runs: 6
