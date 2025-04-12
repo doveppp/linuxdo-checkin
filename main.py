@@ -6,7 +6,6 @@ from loguru import logger
 from playwright.sync_api import sync_playwright
 from tabulate import tabulate
 
-
 os.environ.pop("DISPLAY", None)
 os.environ.pop("DYLD_LIBRARY_PATH", None)
 
@@ -26,6 +25,10 @@ class LinuxDoBrowser:
 
     def login(self):
         logger.info("Login")
+        self.page.evaluate("""() => {
+            const elem = document.getElementById('credential_picker_container');
+            if (elem) elem.style.display = 'none';
+        }""")
         self.page.click(".login-button .d-button-label")
         time.sleep(2)
         self.page.fill("#login-account-name", USERNAME)
