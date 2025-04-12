@@ -35,6 +35,7 @@ USERNAME = os.environ.get("USERNAME")
 PASSWORD = os.environ.get("PASSWORD")
 
 HOME_URL = "https://linux.do/"
+LOGIN_URL = "https://linux.do/login"
 
 
 class LinuxDoBrowser:
@@ -47,7 +48,8 @@ class LinuxDoBrowser:
 
     def login(self):
         logger.info("开始登录")
-        self.page.click(".login-button .d-button-label")
+        # self.page.click(".login-button .d-button-label")
+        self.page.goto(LOGIN_URL)
         time.sleep(2)
         self.page.fill("#login-account-name", USERNAME)
         time.sleep(2)
