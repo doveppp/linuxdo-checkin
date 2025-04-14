@@ -1,9 +1,13 @@
+"""
+cron: 0 0 */12 * *
+new Env("Linux.Do 签到")
+"""
 import os
 import random
 import time
 import functools
 import sys
-
+import requests
 from loguru import logger
 from playwright.sync_api import sync_playwright
 from tabulate import tabulate
@@ -31,8 +35,14 @@ def retry_decorator(retries=3):
 os.environ.pop("DISPLAY", None)
 os.environ.pop("DYLD_LIBRARY_PATH", None)
 
-USERNAME = os.environ.get("USERNAME")
-PASSWORD = os.environ.get("PASSWORD")
+USERNAME = os.environ.get("LINUXDO_USERNAME")
+PASSWORD = os.environ.get("LINUXDO_PASSWORD")
+if not USERNAME:
+    USERNAME = os.environ.get('USERNAME')
+if not PASSWORD:
+    PASSWORD = os.environ.get('PASSWORD')
+GOTIFY_URL = os.environ.get("GOTIFY_URL")  # 新增环境变量
+GOTIFY_TOKEN = os.environ.get("GOTIFY_TOKEN")  # 新增环境变量
 
 HOME_URL = "https://linux.do/"
 LOGIN_URL = "https://linux.do/login"
@@ -114,6 +124,7 @@ class LinuxDoBrowser:
             sys.exit(1)  # 使用非零退出码终止整个程序
         self.click_topic()
         self.print_connect_info()
+        self.send_gotify_notification()
 
     def click_like(self, page):
         try:
@@ -149,6 +160,27 @@ class LinuxDoBrowser:
         print(tabulate(info, headers=["项目", "当前", "要求"], tablefmt="pretty"))
 
         page.close()
+
+    def send_gotify_notification(self):
+        """发送消息到Gotify"""
+        if GOTIFY_URL and GOTIFY_TOKEN:
+            try:
+                response = requests.post(
+                    f"{GOTIFY_URL}/message",
+                    params={"token": GOTIFY_TOKEN},
+                    json={
+                        "title": "LINUX DO",
+                        "message": f"✅每日签到成功完成",
+                        "priority": 1
+                    },
+                    timeout=10
+                )
+                response.raise_for_status()
+                logger.success("消息已推送至Gotify")
+            except Exception as e:
+                logger.error(f"Gotify推送失败: {str(e)}")
+        else:
+            logger.info("未配置Gotify环境变量，跳过通知发送")
 
 
 if __name__ == "__main__":
