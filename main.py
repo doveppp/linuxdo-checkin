@@ -1,3 +1,7 @@
+"""
+cron: 0 0 */12 * *
+new Env("Linux.Do 签到")
+"""
 import os
 import random
 import time
