@@ -31,8 +31,12 @@ def retry_decorator(retries=3):
 os.environ.pop("DISPLAY", None)
 os.environ.pop("DYLD_LIBRARY_PATH", None)
 
-USERNAME = os.environ.get("USERNAME")
-PASSWORD = os.environ.get("PASSWORD")
+USERNAME = os.environ.get("LINUXDO_USERNAME")
+PASSWORD = os.environ.get("LINUXDO_PASSWORD")
+if not USERNAME:
+    USERNAME = os.environ.get('USERNAME')
+if not PASSWORD:
+    PASSWORD = os.environ.get('PASSWORD')
 
 HOME_URL = "https://linux.do/"
 LOGIN_URL = "https://linux.do/login"
