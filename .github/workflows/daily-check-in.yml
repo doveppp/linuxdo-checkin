@@ -3,7 +3,7 @@ name: Daily Check-in
 on:
   schedule:
     #- cron: '0 1 * * *'  # 每天1点 UTC 时间执行
-    - cron: '3 */13 * * *'  # 每12小时执行一次
+    - cron: '3 */13 * * *'  # 每13小时执行一次，即北京时间14:03
 
   workflow_dispatch:
 
@@ -28,6 +28,9 @@ jobs:
         env:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.PASSWORD }}
+          GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
+          GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+          SC3_PUSH_KEY: ${{ secrets.SC3_PUSH_KEY }}
         run: |
           python main.py
 
