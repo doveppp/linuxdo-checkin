@@ -8,6 +8,7 @@ import time
 import functools
 import sys
 import requests
+import re
 from loguru import logger
 from playwright.sync_api import sync_playwright
 from tabulate import tabulate
@@ -41,8 +42,9 @@ if not USERNAME:
     USERNAME = os.environ.get('USERNAME')
 if not PASSWORD:
     PASSWORD = os.environ.get('PASSWORD')
-GOTIFY_URL = os.environ.get("GOTIFY_URL")  # 新增环境变量
-GOTIFY_TOKEN = os.environ.get("GOTIFY_TOKEN")  # 新增环境变量
+GOTIFY_URL = os.environ.get("GOTIFY_URL")  # Gotify 服务器地址
+GOTIFY_TOKEN = os.environ.get("GOTIFY_TOKEN")  # Gotify 应用的 API Token
+SC3_PUSH_KEY = os.environ.get("SC3_PUSH_KEY")  # Server酱³ SendKey
 
 HOME_URL = "https://linux.do/"
 LOGIN_URL = "https://linux.do/login"
@@ -125,6 +127,7 @@ class LinuxDoBrowser:
         self.click_topic()
         self.print_connect_info()
         self.send_gotify_notification()
+        self.send_sc3_notification()  # 添加这行
 
     def click_like(self, page):
         try:
@@ -181,6 +184,38 @@ class LinuxDoBrowser:
                 logger.error(f"Gotify推送失败: {str(e)}")
         else:
             logger.info("未配置Gotify环境变量，跳过通知发送")
+
+    def send_sc3_notification(self):
+        """发送消息到Server酱³"""
+        if not SC3_PUSH_KEY:
+            logger.info("未配置Server酱³环境变量，跳过通知发送")
+            return
+
+        match = re.match(r"sct(\d+)t", SC3_PUSH_KEY, re.I)
+        if not match:
+            logger.error("❌ SC3_PUSH_KEY格式错误，无法使用Server酱³推送")
+            return
+
+        uid = match.group(1)
+        url = f'https://{uid}.push.ft07.com/send/{SC3_PUSH_KEY}'
+        params = {
+            "title": "LINUX DO",
+            "desp": "✅每日签到成功完成"
+        }
+
+        attempts = 5
+        for attempt in range(attempts):
+            try:
+                response = requests.get(url, params=params, timeout=10)
+                response.raise_for_status()
+                logger.success(f"Server酱³推送成功: {response.text}")
+                break
+            except Exception as e:
+                logger.error(f"Server酱³推送失败: {str(e)}")
+                if attempt < attempts - 1:
+                    sleep_time = random.randint(180, 360)
+                    logger.info(f"将在 {sleep_time} 秒后重试...")
+                    time.sleep(sleep_time)
 
 
 if __name__ == "__main__":
