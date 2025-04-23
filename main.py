@@ -191,7 +191,7 @@ class LinuxDoBrowser:
             logger.info("未配置Server酱³环境变量，跳过通知发送")
             return
 
-        match = re.match(r"SCT(\d+)T", SC3_PUSH_KEY, re.I)
+        match = re.match(r"sct(\d+)t", SC3_PUSH_KEY, re.I)
         if not match:
             logger.error("❌ SC3_PUSH_KEY格式错误，无法使用Server酱³推送")
             return
