@@ -33,6 +33,7 @@
 | `GOTIFY_TOKEN`    | Gotify 应用的 API Token | `your_application_token`               |
 | `TELEGRAM_TOKEN`  | Telegram Bot Token   | `123456789:ABCdefghijklmnopqrstuvwxyz` |
 | `TELEGRAM_USERID` | Telegram 用户 ID       | `123456789`                            |
+| `SC3_PUSH_KEY`    | Server酱³ SendKey     | `SCTxxxxT`                             |
 
 ---
 
@@ -134,8 +135,15 @@
 
 未配置时将自动跳过通知功能，不影响签到。
 
+### Server酱³ 通知
+
+当配置了 `SC3_PUSH_KEY` 时，签到结果会通过 Server酱³ 推送通知。
+获取 SendKey：请访问 [Server酱³ SendKey获取](https://sc3.ft07.com/sendkey) 获取你的推送密钥。
+
 ## 自动更新
 
 - **Github Actions**：默认状态下自动更新是关闭的，[点击此处](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/blob/main/README_CN.md#%E6%89%93%E5%BC%80%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0)
 查看打开自动更新步骤。
 - **青龙面板**：更新是以仓库设置的定时规则有关，按照本文配置，则是每天0点更新一次。
+
+
