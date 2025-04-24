@@ -13,7 +13,7 @@
 - 支持`青龙面板` 和 `Github Actions` 自动运行。
 - (可选)`Telegram`通知功能，推送获取签到结果（目前只支持GitHub Actions方式）。
 - (可选)`Gotify`通知功能，推送获取签到结果。
-
+- (可选)`Server酱³`通知功能，推送获取签到结果。
 ## 环境变量配置
 
 ### 必填变量
@@ -33,7 +33,8 @@
 | `GOTIFY_TOKEN`    | Gotify 应用的 API Token | `your_application_token`               |
 | `TELEGRAM_TOKEN`  | Telegram Bot Token   | `123456789:ABCdefghijklmnopqrstuvwxyz` |
 | `TELEGRAM_USERID` | Telegram 用户 ID       | `123456789`                            |
-| `SC3_PUSH_KEY`    | Server酱³ SendKey     | `SCTxxxxT`                             |
+| `SC3_PUSH_KEY`    | Server酱³ SendKey     | `sctpxxxxt`                             |
+| `BROWSE_ENABLED`  | 是否启用浏览帖子功能        | `true` 或 `false`，默认为 `true`           |
 
 ---
 
@@ -49,7 +50,9 @@
     - 在 GitHub 仓库的 `Settings` -> `Secrets and variables` -> `Actions` 中添加以下变量：
         - `LINUXDO_USERNAME`：你的 LinuxDo 用户名或邮箱。
         - `LINUXDO_PASSWORD`：你的 LinuxDo 密码。
+        - (可选) `BROWSE_ENABLED`：是否启用浏览帖子，`true` 或 `false`，默认为 `true`。
         - (可选) `GOTIFY_URL` 和 `GOTIFY_TOKEN`。
+        - (可选) `SC3_PUSH_KEY`。
         - (可选) `TELEGRAM_TOKEN` 和 `TELEGRAM_USERID`。
 
 2. **手动触发工作流**：
@@ -102,8 +105,10 @@
     - 需要配置以下变量：
         - `LINUXDO_USERNAME`：你的LinuxDo用户名/邮箱
         - `LINUXDO_PASSWORD`：你的LinuxDo密码
+        - (可选) `BROWSE_ENABLED`：是否启用浏览帖子功能，`true` 或 `false`，默认为 `true`
         - (可选) `GOTIFY_URL`：Gotify服务器地址
         - (可选) `GOTIFY_TOKEN`：Gotify应用Token
+        - (可选) `SC3_PUSH_KEY`：Server酱³ SendKey        
         - (可选) `TELEGRAM_TOKEN`：Telegram Bot Token
         - (可选) `TELEGRAM_USERID`：Telegram用户ID
 
@@ -121,6 +126,11 @@
 当配置了 `GOTIFY_URL` 和 `GOTIFY_TOKEN` 时，签到结果会通过 Gotify 推送通知。
 具体 Gotify 配置方法请参考 [Gotify 官方文档](https://gotify.net/docs/).
 
+### Server酱³ 通知
+
+当配置了 `SC3_PUSH_KEY` 时，签到结果会通过 Server酱³ 推送通知。
+获取 SendKey：请访问 [Server酱³ SendKey获取](https://sc3.ft07.com/sendkey) 获取你的推送密钥。
+
 ### Telegram 通知
 
 可选功能：配置 Telegram 通知，实时获取签到结果。
@@ -135,10 +145,6 @@
 
 未配置时将自动跳过通知功能，不影响签到。
 
-### Server酱³ 通知
-
-当配置了 `SC3_PUSH_KEY` 时，签到结果会通过 Server酱³ 推送通知。
-获取 SendKey：请访问 [Server酱³ SendKey获取](https://sc3.ft07.com/sendkey) 获取你的推送密钥。
 
 ## 自动更新
 
