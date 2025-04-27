@@ -38,7 +38,7 @@ os.environ.pop("DYLD_LIBRARY_PATH", None)
 
 USERNAME = os.environ.get("LINUXDO_USERNAME")
 PASSWORD = os.environ.get("LINUXDO_PASSWORD")
-BROWSE_ENABLED = os.environ.get("BROWSE_ENABLED", "true").lower() == "true"
+BROWSE_ENABLED = os.environ.get("BROWSE_ENABLED", "true").strip().lower() not in ['false', '0', 'off']
 if not USERNAME:
     USERNAME = os.environ.get('USERNAME')
 if not PASSWORD:
