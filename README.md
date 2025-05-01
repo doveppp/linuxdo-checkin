@@ -72,7 +72,7 @@
 
 ### 青龙面板使用
 
-*注意：如果是docker容器创建的青龙，请使用`whyour/qinglong:debian`镜像，latest（alpine）版本可能无法安装部分依赖*
+*注意：如果是docker容器创建的青龙，**请使用`whyour/qinglong:debian`镜像**，latest（alpine）版本可能无法安装部分依赖*
 
 1. **依赖安装**
     - 首次运行前需要安装Python依赖
