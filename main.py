@@ -74,9 +74,10 @@ class LinuxDoBrowser:
 
         co = (
             ChromiumOptions()
-            .headless(False)
+            .headless(True)
             .add_extension(EXTENSION_PATH)
             .incognito(True)
+            .set_argument("--no-sandbox")
         )
         co.set_user_agent(
             f"Mozilla/5.0 ({platformIdentifier}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
