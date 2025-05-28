@@ -90,7 +90,7 @@ class LinuxDoBrowser:
 
         turnstileResponse = None
 
-        for i in range(0, 3):
+        for i in range(0, 5):
             try:
                 turnstileResponse = self.page.run_js(
                     "try { return turnstile.getResponse() } catch(e) { return null }"
@@ -114,7 +114,8 @@ class LinuxDoBrowser:
         logger.info("开始登录")
         self.page.get(LOGIN_URL)
         time.sleep(2)
-        # print(self.getTurnstileToken())
+        turnstile_token = self.getTurnstileToken()
+        logger.info(f"turnstile_token: {turnstile_token}")
         self.page.get_screenshot("screenshot.png")
         self.page.ele("@id=login-account-name").input(USERNAME)
         self.page.ele("@id=login-account-password").input(PASSWORD)
