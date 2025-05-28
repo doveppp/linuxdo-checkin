@@ -1,5 +1,9 @@
 # LinuxDo 每日签到（每日打卡）
 
+## 不可用！
+
+**CF盾过不了，待事情有转机了再更新吧**
+
 ## 项目描述
 
 这个项目用于自动登录 [LinuxDo](https://linux.do/) 网站并随机读取几个帖子。它使用 Python 和 Playwright
