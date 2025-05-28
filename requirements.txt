@@ -1,4 +1,4 @@
-playwright==1.43.0
+DrissionPage==4.1.0.18
 wcwidth==0.2.13
 tabulate==0.9.0
 loguru==0.7.2

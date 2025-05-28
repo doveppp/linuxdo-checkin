@@ -2,6 +2,7 @@
 cron: 0 */6 * * *
 new Env("Linux.Do 签到")
 """
+
 import os
 import random
 import time
@@ -10,7 +11,7 @@ import sys
 import requests
 import re
 from loguru import logger
-from playwright.sync_api import sync_playwright
+from DrissionPage import ChromiumOptions, Chromium
 from tabulate import tabulate
 
 
@@ -24,7 +25,9 @@ def retry_decorator(retries=3):
                 except Exception as e:
                     if attempt == retries - 1:  # 最后一次尝试
                         logger.error(f"函数 {func.__name__} 最终执行失败: {str(e)}")
-                    logger.warning(f"函数 {func.__name__} 第 {attempt + 1}/{retries} 次尝试失败: {str(e)}")
+                    logger.warning(
+                        f"函数 {func.__name__} 第 {attempt + 1}/{retries} 次尝试失败: {str(e)}"
+                    )
                     time.sleep(1)
             return None
 
@@ -38,11 +41,15 @@ os.environ.pop("DYLD_LIBRARY_PATH", None)
 
 USERNAME = os.environ.get("LINUXDO_USERNAME")
 PASSWORD = os.environ.get("LINUXDO_PASSWORD")
-BROWSE_ENABLED = os.environ.get("BROWSE_ENABLED", "true").strip().lower() not in ['false', '0', 'off']
+BROWSE_ENABLED = os.environ.get("BROWSE_ENABLED", "true").strip().lower() not in [
+    "false",
+    "0",
+    "off",
+]
 if not USERNAME:
-    USERNAME = os.environ.get('USERNAME')
+    USERNAME = os.environ.get("USERNAME")
 if not PASSWORD:
-    PASSWORD = os.environ.get('PASSWORD')
+    PASSWORD = os.environ.get("PASSWORD")
 GOTIFY_URL = os.environ.get("GOTIFY_URL")  # Gotify 服务器地址
 GOTIFY_TOKEN = os.environ.get("GOTIFY_TOKEN")  # Gotify 应用的 API Token
 SC3_PUSH_KEY = os.environ.get("SC3_PUSH_KEY")  # Server酱³ SendKey
@@ -53,24 +60,66 @@ LOGIN_URL = "https://linux.do/login"
 
 class LinuxDoBrowser:
     def __init__(self) -> None:
-        self.pw = sync_playwright().start()
-        self.browser = self.pw.firefox.launch(headless=True, timeout=30000)
-        self.context = self.browser.new_context()
-        self.page = self.context.new_page()
-        self.page.goto(HOME_URL)
+        EXTENSION_PATH = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "turnstilePatch")
+        )
+        from sys import platform
+
+        if platform == "linux" or platform == "linux2":
+            platformIdentifier = "X11; Linux x86_64"
+        elif platform == "darwin":
+            platformIdentifier = "Macintosh; Intel Mac OS X 10_15_7"
+        elif platform == "win32":
+            platformIdentifier = "Windows NT 10.0; Win64; x64"
+
+        co = (
+            ChromiumOptions()
+            .headless(False)
+            .add_extension(EXTENSION_PATH)
+            .incognito(True)
+        )
+        co.set_user_agent(
+            f"Mozilla/5.0 ({platformIdentifier}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+        )
+        self.browser = Chromium(co)
+        self.page = self.browser.new_tab()
+
+    def getTurnstileToken(self):
+        self.page.run_js("try { turnstile.reset() } catch(e) { }")
+
+        turnstileResponse = None
+
+        for i in range(0, 3):
+            try:
+                turnstileResponse = self.page.run_js(
+                    "try { return turnstile.getResponse() } catch(e) { return null }"
+                )
+                if turnstileResponse:
+                    return turnstileResponse
+
+                challengeSolution = self.page.ele("@name=cf-turnstile-response")
+                challengeWrapper = challengeSolution.parent()
+                challengeIframe = challengeWrapper.shadow_root.ele("tag:iframe")
+                challengeIframeBody = challengeIframe.ele("tag:body").shadow_root
+                challengeButton = challengeIframeBody.ele("tag:input")
+                challengeButton.click()
+            except Exception as e:
+                logger.warning(f"处理 Turnstile 时出错: {str(e)}")
+            time.sleep(1)
+        # self.page.refresh()
+        # raise Exception("failed to solve turnstile")
 
     def login(self):
         logger.info("开始登录")
-        # self.page.click(".login-button .d-button-label")
-        self.page.goto(LOGIN_URL)
+        self.page.get(LOGIN_URL)
         time.sleep(2)
-        self.page.fill("#login-account-name", USERNAME)
-        time.sleep(2)
-        self.page.fill("#login-account-password", PASSWORD)
-        time.sleep(2)
-        self.page.click("#login-button")
+        # print(self.getTurnstileToken())
+        self.page.get_screenshot("screenshot.png")
+        self.page.ele("@id=login-account-name").input(USERNAME)
+        self.page.ele("@id=login-account-password").input(PASSWORD)
+        self.page.ele("@id=login-button").click()
         time.sleep(10)
-        user_ele = self.page.query_selector("#current-user")
+        user_ele = self.page.ele("@id=current-user")
         if not user_ele:
             logger.error("登录失败")
             return False
@@ -79,19 +128,19 @@ class LinuxDoBrowser:
             return True
 
     def click_topic(self):
-        topic_list = self.page.query_selector_all("#list-area .title")
-        logger.info(f"发现 {len(topic_list)} 个主题帖")
-        for topic in topic_list:
-            self.click_one_topic(topic.get_attribute("href"))
+        topic_list = self.page.ele("@id=list-area").eles(".:title")
+        logger.info(f"发现 {len(topic_list)} 个主题帖，随机选择10个")
+        for topic in random.sample(topic_list, 10):
+            self.click_one_topic(topic.attr("href"))
 
     @retry_decorator()
     def click_one_topic(self, topic_url):
-        page = self.context.new_page()
-        page.goto(HOME_URL + topic_url)
+        new_page = self.browser.new_tab()
+        new_page.get(topic_url)
         if random.random() < 0.3:  # 0.3 * 30 = 9
-            self.click_like(page)
-        self.browse_post(page)
-        page.close()
+            self.click_like(new_page)
+        self.browse_post(new_page)
+        new_page.close()
 
     def browse_post(self, page):
         prev_url = None
@@ -100,7 +149,7 @@ class LinuxDoBrowser:
             # 随机滚动一段距离
             scroll_distance = random.randint(550, 650)  # 随机滚动 550-650 像素
             logger.info(f"向下滚动 {scroll_distance} 像素...")
-            page.evaluate(f"window.scrollBy(0, {scroll_distance})")
+            page.run_js(f"window.scrollBy(0, {scroll_distance})")
             logger.info(f"已加载页面: {page.url}")
 
             if random.random() < 0.03:  # 33 * 4 = 132
@@ -108,7 +157,9 @@ class LinuxDoBrowser:
                 break
 
             # 检查是否到达页面底部
-            at_bottom = page.evaluate("window.scrollY + window.innerHeight >= document.body.scrollHeight")
+            at_bottom = page.run_js(
+                "window.scrollY + window.innerHeight >= document.body.scrollHeight"
+            )
             current_url = page.url
             if current_url != prev_url:
                 prev_url = current_url
@@ -122,21 +173,23 @@ class LinuxDoBrowser:
             time.sleep(wait_time)
 
     def run(self):
-        if not self.login(): # 登录
+        if not self.login():  # 登录
             logger.error("登录失败，程序终止")
             sys.exit(1)  # 使用非零退出码终止整个程序
-        
+
         if BROWSE_ENABLED:
-            self.click_topic() # 点击主题
+            self.click_topic()  # 点击主题
             logger.info("完成浏览任务")
-            
-        self.print_connect_info() # 打印连接信息
-        self.send_notifications(BROWSE_ENABLED) # 发送通知
+
+        self.print_connect_info()  # 打印连接信息
+        self.send_notifications(BROWSE_ENABLED)  # 发送通知
+        self.page.close()
+        self.browser.quit()
 
     def click_like(self, page):
         try:
             # 专门查找未点赞的按钮
-            like_button = page.locator('.discourse-reactions-reaction-button[title="点赞此帖子"]').first
+            like_button = page.ele(".discourse-reactions-reaction-button")
             if like_button:
                 logger.info("找到未点赞的帖子，准备点赞")
                 like_button.click()
@@ -149,18 +202,18 @@ class LinuxDoBrowser:
 
     def print_connect_info(self):
         logger.info("获取连接信息")
-        page = self.context.new_page()
-        page.goto("https://connect.linux.do/")
-        rows = page.query_selector_all("table tr")
+        page = self.browser.new_tab()
+        page.get("https://connect.linux.do/")
+        rows = page.ele("tag:table").eles("tag:tr")
 
         info = []
 
         for row in rows:
-            cells = row.query_selector_all("td")
+            cells = row.eles("tag:td")
             if len(cells) >= 3:
-                project = cells[0].text_content().strip()
-                current = cells[1].text_content().strip()
-                requirement = cells[2].text_content().strip()
+                project = cells[0].text.strip()
+                current = cells[1].text.strip()
+                requirement = cells[2].text.strip()
                 info.append([project, current, requirement])
 
         print("--------------Connect Info-----------------")
@@ -172,18 +225,14 @@ class LinuxDoBrowser:
         status_msg = "✅每日登录成功"
         if browse_enabled:
             status_msg += " + 浏览任务完成"
-            
+
         if GOTIFY_URL and GOTIFY_TOKEN:
             try:
                 response = requests.post(
                     f"{GOTIFY_URL}/message",
                     params={"token": GOTIFY_TOKEN},
-                    json={
-                        "title": "LINUX DO",
-                        "message": status_msg,
-                        "priority": 1
-                    },
-                    timeout=10
+                    json={"title": "LINUX DO", "message": status_msg, "priority": 1},
+                    timeout=10,
                 )
                 response.raise_for_status()
                 logger.success("消息已推送至Gotify")
@@ -195,15 +244,14 @@ class LinuxDoBrowser:
         if SC3_PUSH_KEY:
             match = re.match(r"sct(\d+)t", SC3_PUSH_KEY, re.I)
             if not match:
-                logger.error("❌ SC3_PUSH_KEY格式错误，未获取到UID，无法使用Server酱³推送")
+                logger.error(
+                    "❌ SC3_PUSH_KEY格式错误，未获取到UID，无法使用Server酱³推送"
+                )
                 return
 
             uid = match.group(1)
-            url = f'https://{uid}.push.ft07.com/send/{SC3_PUSH_KEY}'
-            params = {
-                "title": "LINUX DO",
-                "desp": status_msg
-            }
+            url = f"https://{uid}.push.ft07.com/send/{SC3_PUSH_KEY}"
+            params = {"title": "LINUX DO", "desp": status_msg}
 
             attempts = 5
             for attempt in range(attempts):
