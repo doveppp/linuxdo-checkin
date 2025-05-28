@@ -13,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
+      - name: Check Chrome version
         run: chrome --version
         
       - name: Set up Python
