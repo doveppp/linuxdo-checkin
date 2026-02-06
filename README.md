@@ -16,6 +16,7 @@
 - (可选)`Telegram`通知功能，推送获取签到结果（目前只支持GitHub Actions方式）。
 - (可选)`Gotify`通知功能，推送获取签到结果。
 - (可选)`Server酱³`通知功能，推送获取签到结果。
+- (可选)`wxpush`通知功能，推送获取签到结果。
 ## 环境变量配置
 
 ### 必填变量
@@ -36,6 +37,8 @@
 | `TELEGRAM_TOKEN`  | Telegram Bot Token   | `123456789:ABCdefghijklmnopqrstuvwxyz` |
 | `TELEGRAM_USERID` | Telegram 用户 ID       | `123456789`                            |
 | `SC3_PUSH_KEY`    | Server酱³ SendKey     | `sctpxxxxt`                             |
+| `WXPUSH_URL`      | wxpush 服务器地址         | `https://your.wxpush.server`           |
+| `WXPUSH_TOKEN`    | wxpush 的 token        | `your_wxpush_token`                    |
 | `BROWSE_ENABLED`  | 是否启用浏览帖子功能        | `true` 或 `false`，默认为 `true`           |
 
 ---
@@ -55,6 +58,7 @@
         - (可选) `BROWSE_ENABLED`：是否启用浏览帖子，`true` 或 `false`，默认为 `true`。
         - (可选) `GOTIFY_URL` 和 `GOTIFY_TOKEN`。
         - (可选) `SC3_PUSH_KEY`。
+        - (可选) `WXPUSH_URL` 和 `WXPUSH_TOKEN`。
         - (可选) `TELEGRAM_TOKEN` 和 `TELEGRAM_USERID`。
 
 2. **手动触发工作流**：
@@ -116,7 +120,9 @@
         - (可选) `BROWSE_ENABLED`：是否启用浏览帖子功能，`true` 或 `false`，默认为 `true`
         - (可选) `GOTIFY_URL`：Gotify服务器地址
         - (可选) `GOTIFY_TOKEN`：Gotify应用Token
-        - (可选) `SC3_PUSH_KEY`：Server酱³ SendKey        
+        - (可选) `SC3_PUSH_KEY`：Server酱³ SendKey
+        - (可选) `WXPUSH_URL`：wxpush服务器地址
+        - (可选) `WXPUSH_TOKEN`：wxpush的token
         - (可选) `TELEGRAM_TOKEN`：Telegram Bot Token
         - (可选) `TELEGRAM_USERID`：Telegram用户ID
 
@@ -138,6 +144,11 @@
 
 当配置了 `SC3_PUSH_KEY` 时，签到结果会通过 Server酱³ 推送通知。
 获取 SendKey：请访问 [Server酱³ SendKey获取](https://sc3.ft07.com/sendkey) 获取你的推送密钥。
+
+### wxpush 通知
+
+当配置了 `WXPUSH_URL` 和 `WXPUSH_TOKEN` 时，签到结果会通过 wxpush 推送通知。
+使用 POST 方式推送，请求地址为 `{WXPUSH_URL}/wxsend`。
 
 ### Telegram 通知
 

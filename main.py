@@ -7,16 +7,15 @@ import os
 import random
 import time
 import functools
-import sys
-import re
 from loguru import logger
 from DrissionPage import ChromiumOptions, Chromium
 from tabulate import tabulate
 from curl_cffi import requests
 from bs4 import BeautifulSoup
+from notify import NotificationManager
 
 
-def retry_decorator(retries=3):
+def retry_decorator(retries=3, min_delay=5, max_delay=10):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -29,7 +28,12 @@ def retry_decorator(retries=3):
                     logger.warning(
                         f"函数 {func.__name__} 第 {attempt + 1}/{retries} 次尝试失败: {str(e)}"
                     )
-                    time.sleep(1)
+                    if attempt < retries - 1:
+                        sleep_s = random.uniform(min_delay, max_delay)
+                        logger.info(
+                            f"将在 {sleep_s:.2f}s 后重试 ({min_delay}-{max_delay}s 随机延迟)"
+                        )
+                        time.sleep(sleep_s)
             return None
 
         return wrapper
@@ -51,9 +55,6 @@ if not USERNAME:
     USERNAME = os.environ.get("USERNAME")
 if not PASSWORD:
     PASSWORD = os.environ.get("PASSWORD")
-GOTIFY_URL = os.environ.get("GOTIFY_URL")  # Gotify 服务器地址
-GOTIFY_TOKEN = os.environ.get("GOTIFY_TOKEN")  # Gotify 应用的 API Token
-SC3_PUSH_KEY = os.environ.get("SC3_PUSH_KEY")  # Server酱³ SendKey
 
 HOME_URL = "https://linux.do/"
 LOGIN_URL = "https://linux.do/login"
@@ -71,6 +72,8 @@ class LinuxDoBrowser:
             platformIdentifier = "Macintosh; Intel Mac OS X 10_15_7"
         elif platform == "win32":
             platformIdentifier = "Windows NT 10.0; Win64; x64"
+        else:
+            platformIdentifier = "X11; Linux x86_64"
 
         co = (
             ChromiumOptions()
@@ -91,6 +94,8 @@ class LinuxDoBrowser:
                 "Accept-Language": "zh-CN,zh;q=0.9",
             }
         )
+        # 初始化通知管理器
+        self.notifier = NotificationManager()
 
     def login(self):
         logger.info("开始登录")
@@ -103,7 +108,10 @@ class LinuxDoBrowser:
             "X-Requested-With": "XMLHttpRequest",
             "Referer": LOGIN_URL,
         }
-        resp_csrf = self.session.get(CSRF_URL, headers=headers, impersonate="chrome136")
+        resp_csrf = self.session.get(CSRF_URL, headers=headers, impersonate="firefox135")
+        if resp_csrf.status_code != 200:
+            logger.error(f"获取 CSRF token 失败: {resp_csrf.status_code}")
+            return False        
         csrf_data = resp_csrf.json()
         csrf_token = csrf_data.get("csrf")
         logger.info(f"CSRF Token obtained: {csrf_token[:10]}...")
@@ -205,11 +213,16 @@ class LinuxDoBrowser:
     @retry_decorator()
     def click_one_topic(self, topic_url):
         new_page = self.browser.new_tab()
-        new_page.get(topic_url)
-        if random.random() < 0.3:  # 0.3 * 30 = 9
-            self.click_like(new_page)
-        self.browse_post(new_page)
-        new_page.close()
+        try:
+            new_page.get(topic_url)
+            if random.random() < 0.3:  # 0.3 * 30 = 9
+                self.click_like(new_page)
+            self.browse_post(new_page)
+        finally:
+            try:
+                new_page.close()
+            except Exception:
+                pass
 
     def browse_post(self, page):
         prev_url = None
@@ -242,20 +255,28 @@ class LinuxDoBrowser:
             time.sleep(wait_time)
 
     def run(self):
-        login_res = self.login()
-        if not login_res:  # 登录
-            logger.warning("登录验证失败")
+        try:
+            login_res = self.login()
+            if not login_res:  # 登录
+                logger.warning("登录验证失败")
 
-        if BROWSE_ENABLED:
-            click_topic_res = self.click_topic()  # 点击主题
-            if not click_topic_res:
-                logger.error("点击主题失败，程序终止")
-                return
-            logger.info("完成浏览任务")
+            if BROWSE_ENABLED:
+                click_topic_res = self.click_topic()  # 点击主题
+                if not click_topic_res:
+                    logger.error("点击主题失败，程序终止")
+                    return
+                logger.info("完成浏览任务")
 
-        self.send_notifications(BROWSE_ENABLED)  # 发送通知
-        self.page.close()
-        self.browser.quit()
+            self.send_notifications(BROWSE_ENABLED)  # 发送通知
+        finally:
+            try:
+                self.page.close()
+            except Exception:
+                pass
+            try:
+                self.browser.quit()
+            except Exception:
+                pass
 
     def click_like(self, page):
         try:
@@ -295,55 +316,18 @@ class LinuxDoBrowser:
         print(tabulate(info, headers=["项目", "当前", "要求"], tablefmt="pretty"))
 
     def send_notifications(self, browse_enabled):
-        status_msg = "✅每日登录成功: {USERNAME}"
+        """发送签到通知"""
+        status_msg = f"✅每日登录成功: {USERNAME}"
         if browse_enabled:
             status_msg += " + 浏览任务完成"
-
-        if GOTIFY_URL and GOTIFY_TOKEN:
-            try:
-                response = requests.post(
-                    f"{GOTIFY_URL}/message",
-                    params={"token": GOTIFY_TOKEN},
-                    json={"title": "LINUX DO", "message": status_msg, "priority": 1},
-                    timeout=10,
-                )
-                response.raise_for_status()
-                logger.success("消息已推送至Gotify")
-            except Exception as e:
-                logger.error(f"Gotify推送失败: {str(e)}")
-        else:
-            logger.info("未配置Gotify环境变量，跳过通知发送")
-
-        if SC3_PUSH_KEY:
-            match = re.match(r"sct(\d+)t", SC3_PUSH_KEY, re.I)
-            if not match:
-                logger.error(
-                    "❌ SC3_PUSH_KEY格式错误，未获取到UID，无法使用Server酱³推送"
-                )
-                return
-
-            uid = match.group(1)
-            url = f"https://{uid}.push.ft07.com/send/{SC3_PUSH_KEY}"
-            params = {"title": "LINUX DO", "desp": status_msg}
-
-            attempts = 5
-            for attempt in range(attempts):
-                try:
-                    response = requests.get(url, params=params, timeout=10)
-                    response.raise_for_status()
-                    logger.success(f"Server酱³推送成功: {response.text}")
-                    break
-                except Exception as e:
-                    logger.error(f"Server酱³推送失败: {str(e)}")
-                    if attempt < attempts - 1:
-                        sleep_time = random.randint(180, 360)
-                        logger.info(f"将在 {sleep_time} 秒后重试...")
-                        time.sleep(sleep_time)
+        
+        # 使用通知管理器发送所有通知
+        self.notifier.send_all("LINUX DO", status_msg)
 
 
 if __name__ == "__main__":
     if not USERNAME or not PASSWORD:
         print("Please set USERNAME and PASSWORD")
         exit(1)
-    l = LinuxDoBrowser()
-    l.run()
+    browser = LinuxDoBrowser()
+    browser.run()
