@@ -8,14 +8,34 @@ on:
   workflow_dispatch:
 
 jobs:
+  # 新增一个 Job 用于解析 Secrets 中的用户名字符串
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          # 将逗号分隔的字符串转换为 JSON 数组格式
+          # 例如 "a,b" 变为 ["a","b"]
+          USERS=$(echo "\"${{ secrets.LINUXDO_USERNAME }}\"" | sed 's/,/","/g')
+          echo "matrix=[$USERS]" >> $GITHUB_OUTPUT
+
+
   run_script:
+    needs: prepare # 确保在解析完用户名后再运行
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        usernames: ${{ fromJson(needs.prepare.outputs.matrix) }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
       - name: Check Chrome version
         run: chrome --version
-        
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -30,15 +50,15 @@ jobs:
         env:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.PASSWORD }}
-          LINUXDO_USERNAME: ${{ secrets.LINUXDO_USERNAME }}
+          LINUXDO_USERNAME: ${{ matrix.usernames }}
           LINUXDO_PASSWORD: ${{ secrets.LINUXDO_PASSWORD }}
           GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
           GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
           SC3_PUSH_KEY: ${{ secrets.SC3_PUSH_KEY }}
           WXPUSH_URL: ${{ secrets.WXPUSH_URL }}
           WXPUSH_TOKEN: ${{ secrets.WXPUSH_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_USERID }}
           BROWSE_ENABLED: ${{ secrets.BROWSE_ENABLED }}
         run: |
           python main.py
