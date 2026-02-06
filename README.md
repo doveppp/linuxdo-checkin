@@ -23,7 +23,7 @@
 
 | 环境变量名称             | 描述                | 示例值                                |
 |--------------------|-------------------|------------------------------------|
-| `LINUXDO_USERNAME` | 你的 LinuxDo 用户名或邮箱 | `your_username` 或 `your@email.com` |
+| `LINUXDO_USERNAME` | 你的 LinuxDo 用户名或邮箱 | `your_username` 或 `your@email.com`。<span style="color:red">多个账号以英文逗号`,`隔开且密码必须相同</span> |
 | `LINUXDO_PASSWORD` | 你的 LinuxDo 密码     | `your_password`                    |
 
 ~~之前的USERNAME和PASSWORD环境变量仍然可用，但建议使用新的环境变量~~
@@ -53,7 +53,7 @@
 
 1. **设置环境变量**：
     - 在 GitHub 仓库的 `Settings` -> `Secrets and variables` -> `Actions` 中添加以下变量：
-        - `LINUXDO_USERNAME`：你的 LinuxDo 用户名或邮箱。
+        - `LINUXDO_USERNAME`：你的 LinuxDo 用户名或邮箱。<span style="color:red">多个账号以英文逗号`,`隔开且密码必须相同</span>
         - `LINUXDO_PASSWORD`：你的 LinuxDo 密码。
         - (可选) `BROWSE_ENABLED`：是否启用浏览帖子，`true` 或 `false`，默认为 `true`。
         - (可选) `GOTIFY_URL` 和 `GOTIFY_TOKEN`。
