@@ -19,19 +19,15 @@
 - (可选)`wxpush`通知功能，推送获取签到结果。
 ## 环境变量配置
 
-### 必填变量
-
-| 环境变量名称             | 描述                | 示例值                                |
-|--------------------|-------------------|------------------------------------|
-| `LINUXDO_USERNAME` | 你的 LinuxDo 用户名或邮箱 | `your_username` 或 `your@email.com` |
-| `LINUXDO_PASSWORD` | 你的 LinuxDo 密码     | `your_password`                    |
-
-~~之前的USERNAME和PASSWORD环境变量仍然可用，但建议使用新的环境变量~~
+| 环境变量名称 | 描述 | 获取方式/示例值 |
+| :--- | :--- | :--- |
+| **`LINUXDO_COOKIE_T`** | 登录后的 Cookie `_t` 值 | 浏览器 F12 -> Application -> Cookies 找到 `_t` |
 
 ### 可选变量
 
 | 环境变量名称            | 描述                   | 示例值                                    |
 |-------------------|----------------------|----------------------------------------|
+| `ACTIONS_TRIGGER_PAT` | 解决 401 权限报错的个人令牌 | `ghp_xxxxxxxxxxxx` |
 | `GOTIFY_URL`      | Gotify 服务器地址         | `https://your.gotify.server:8080`      |
 | `GOTIFY_TOKEN`    | Gotify 应用的 API Token | `your_application_token`               |
 | `TELEGRAM_BOT_TOKEN`  | Telegram Bot Token   | `123456789:ABCdefghijklmnopqrstuvwxyz` |
@@ -53,8 +49,9 @@
 
 1. **设置环境变量**：
     - 在 GitHub 仓库的 `Settings` -> `Secrets and variables` -> `Actions` 中添加以下变量：
-        - `LINUXDO_USERNAME`：你的 LinuxDo 用户名或邮箱。
-        - `LINUXDO_PASSWORD`：你的 LinuxDo 密码。
+    
+        - `LINUXDO_COOKIE_T`。
+        - `ACTIONS_TRIGGER_PAT`。
         - (可选) `BROWSE_ENABLED`：是否启用浏览帖子，`true` 或 `false`，默认为 `true`。
         - (可选) `GOTIFY_URL` 和 `GOTIFY_TOKEN`。
         - (可选) `SC3_PUSH_KEY`。

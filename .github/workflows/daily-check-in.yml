@@ -2,7 +2,7 @@ name: Daily Check-in
 
 on:
   schedule:
-    #- cron: '0 1 * * *'  # 每天1点 UTC 时间执行
+    # - cron: '0 1 * * *'  # 每天1点 UTC 时间执行
     - cron: '0 */12 * * *'  # 每12小时执行一次
 
   workflow_dispatch:
@@ -28,6 +28,9 @@ jobs:
 
       - name: Execute script
         env:
+          # --- 关键修改：添加下面这一行 ---
+          LINUXDO_COOKIE_T: ${{ secrets.LINUXDO_COOKIE_T }}
+          # ------------------------------
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.PASSWORD }}
           LINUXDO_USERNAME: ${{ secrets.LINUXDO_USERNAME }}
